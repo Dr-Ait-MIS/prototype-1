@@ -1,0 +1,118 @@
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator kysely {
+  provider = "prisma-kysely"
+  output = "../src/db"  // Directory where the generated types will be saved
+  fileName = "types.ts" // File name for the generated types
+  enumFileName = "enums.ts" // Optional: File name for generated enums
+}
+
+// Prisma Models
+
+model Faculty {
+  id             Int      @id @default(autoincrement())
+  facultyId      String   @unique
+  firstName      String
+  middleName     String?
+  lastName       String
+  email          String   @unique
+  address        String?
+  joiningDate    DateTime
+  designation    String
+  departmentId   String
+  phoneNumber    String?
+  vtuId          String?
+  aicteId        String?
+  scopusId       String?
+  orcidId        String?
+  password       String
+  achievements   FacultyAchievement[]
+  department     Department @relation(fields: [departmentId], references: [departmentId])
+  attendance     Attendance[]
+}
+
+model FacultyAchievement {
+  id             Int      @id @default(autoincrement())
+  facultyId      Int
+  achievement    String
+  achievementUrl String?
+  awards         String?
+  faculty        Faculty  @relation(fields: [facultyId], references: [id])
+}
+
+model Student {
+  id             Int      @id @default(autoincrement())
+  firstName      String
+  middleName     String?
+  lastName       String
+  email          String   @unique
+  address        String?
+  joiningDate    DateTime
+  branch         String?
+  StudentId      String   @unique    //This is the usn of the student
+  departmentId   String
+  dob            DateTime
+  semester       Int?
+  degreeId       String
+  phoneNumber    String?
+  sex            String?
+  password       String
+  department     Department @relation(fields: [departmentId], references: [departmentId])
+  degree         Degree     @relation(fields: [degreeId], references: [degreeId])
+  attendance     Attendance[]
+}
+
+model Attendance {
+  id           Int      @id @default(autoincrement())
+  studentId    Int
+  date         DateTime
+  isPresent    Boolean
+  permission   Boolean?
+  notCounted   Boolean?
+  courseId     Int
+  facultyId    Int
+  student      Student  @relation(fields: [studentId], references: [id])
+  course       Course   @relation(fields: [courseId], references: [id])
+  faculty      Faculty  @relation(fields: [facultyId], references: [id])
+}
+
+model Degree {
+  id              Int      @id @default(autoincrement())
+  degreeId        String   @unique
+  name            String
+  departments     Department[]
+  students        Student[]
+}
+
+model Department {
+  id            Int      @id @default(autoincrement())
+  departmentId  String   @unique
+  name          String
+  degreeId      String
+  hod           String?
+  courses       Course[]
+  faculty       Faculty[]
+  students      Student[]
+  degree        Degree    @relation(fields: [degreeId], references: [degreeId])
+}
+
+model Course {
+  id             Int      @id @default(autoincrement())
+  credits        Int
+  courseId       String   @unique
+  name           String
+  branchOffered  String?
+  additionalCourses String?
+  courseCode     String   @unique
+  departmentId   Int
+  courseType     String   // Field to indicate if the course is mandatory or elective
+  department     Department @relation(fields: [departmentId], references: [id])
+  attendance     Attendance[]
+}
